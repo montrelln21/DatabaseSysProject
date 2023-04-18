@@ -78,6 +78,7 @@ VALUES (1, 1, 1, 8.0,1), -- participation
        (14, 3, 3, 87.0,1), -- test 1
        (15, 4, 3, 91.5,1); -- project
 
+-------------------TASKS----------------------------
 
 -- task 3: list tables with inserted content 
 SELECT * FROM Course;
