@@ -1,1 +1,171 @@
+-- command to create course table 
+CREATE TABLE Course (
+  course_id INT PRIMARY KEY,
+  department VARCHAR(50),
+  course_number INT,
+  course_name VARCHAR(100),
+  semester VARCHAR(50),
+  year INT
+);
 
+-- command to create a table of student names
+CREATE TABLE Student (
+  student_id INT PRIMARY KEY,
+  first_name VARCHAR(50),
+  last_name VARCHAR(50),
+  course_id INT,
+  FOREIGN KEY (course_id) REFERENCES Course(course_id)
+);
+
+-- command to create assignments table 
+CREATE TABLE Assignment (
+  assignment_id INT PRIMARY KEY,
+  category VARCHAR(50),
+  percentage DECIMAL(5, 2),
+  course_id INT,
+  FOREIGN KEY (course_id) REFERENCES Course(course_id)
+);
+
+-- command to create grades table
+CREATE TABLE Grades (
+  grade_id INT PRIMARY KEY,
+  assignment_id INT,
+  student_id INT,
+  score DECIMAL(5,2),
+  course_id INT,
+  FOREIGN KEY (student_id) REFERENCES student(student_id),
+  FOREIGN KEY (assignment_id) REFERENCES assignment(assignment_id),
+  FOREIGN KEY (course_id) REFERENCES course(course_id)
+);
+--CREATE TABLE Grades (
+ -- grade_id INT PRIMARY KEY,
+ -- score DECIMAL(5, 2),
+ -- student_id INT,
+ -- assignment_id INT,
+ -- FOREIGN KEY (student_id) REFERENCES Student(student_id),
+ -- FOREIGN KEY (assignment_id) REFERENCES Assignment(assignment_id)
+--);
+
+
+
+-- command to insert values into Course table
+INSERT INTO Course (course_id, department, course_number, course_name, semester, year)
+VALUES (1, 'CSCI', 100, 'Intro to Computer Science', 'Spring', 2023),(2, 'MATH', 157 , 'Calculus II', 'Spring', 2023),
+  (3, 'CSCI', 432 , 'Database Systems', 'Spring', 2023);
+
+-- command to insert student names table
+INSERT INTO Student (student_id, first_name, last_name, course_id)
+VALUES (1, 'James', 'Quincy', 1),
+       (2, 'Sierra', 'Ivory', 1),
+       (3, 'Baron', 'Johnson', 1);
+
+-- command to insert course evaluation 
+INSERT INTO Assignment (assignment_id, category, percentage, course_id)
+VALUES (1, 'Participation', 10.0, 1),
+       (2, 'Homework', 20.0, 1),
+       (3, 'Tests', 50.0, 1),
+       (4, 'Projects', 20.0, 1);
+
+-- command to insert values into Grades table
+INSERT INTO Grades (grade_id, assignment_id, student_id, score, course_id)
+VALUES (1, 1, 1, 8.0,1), -- participation 
+       (2, 2, 1, 95.0,1), -- HW 1
+       (3, 2, 1, 64.0,1), -- HW 2
+       (4, 3, 1, 75.0,1), -- test 1
+       (5, 4, 1, 86.0,1), -- project
+       (6, 1, 2, 9.0,1), -- participation
+       (7, 2, 2, 87.5,1), -- HW 1
+       (8, 2, 2, 91.0,1), -- HW 2
+       (9, 3, 2, 82.0,1), -- test 1
+       (10, 4, 2, 95.0,1), -- project
+       (11, 1, 3, 7.0,1), -- participation
+       (12, 2, 3, 78.0,1), -- HW 1
+       (13, 2, 3, 83.0,1), -- HW 2
+       (14, 3, 3, 87.0,1), -- test 1
+       (15, 4, 3, 91.5,1); -- project
+
+
+-- task 3: list tables with inserted content 
+SELECT * FROM Course;
+SELECT * FROM Student;
+SELECT * FROM Assignment;
+SELECT * FROM Grades;
+
+-- task 4: average/highest/lowest
+-- calculate avergae score of assignment 2 
+SELECT AVG(score) AS average_score
+FROM Grades
+WHERE assignment_id = 2;
+
+-- calculate highest score of assignment 2 
+SELECT MAX(score) AS highest_score
+FROM Grades
+WHERE assignment_id = 2;
+
+-- calculate lowest score of assignment 2
+SELECT MIN(score) AS lowest_score
+FROM Grades
+WHERE assignment_id = 2; 
+
+-- task 5: List all of the students in a given course
+SELECT s. * FROM Student s
+JOIN Course c ON s.course_id = c.course_id
+WHERE c.course_id = 1; 
+
+--task 6: List all of the students in a given course and all of their scores on every assignment
+SELECT student.student_id, student.first_name, student.last_name, assignment.category, grades.score
+FROM student
+JOIN grades ON student.student_id = grades.student_id
+JOIN assignment ON grades.assignment_id = assignment.assignment_id
+WHERE grades.course_id = 1
+ORDER BY student.last_name, student.first_name, assignment.category;
+
+
+--task 7: Add an assignment to a course
+INSERT INTO Assignment (assignment_id, category, percentage, course_id)
+VALUES (5, 'Final Exam', 30.0, 1);
+
+--delete from Assignment where assignment_id = 5;
+
+
+-- task 8: change the percentages of the categories for a course 
+UPDATE Assignment
+SET percentage = 25.0
+WHERE category = 'Homework' AND course_id = 1;
+
+-- task 9: Add 2 points to the score of each student on an assignment 
+UPDATE Grades
+SET score = score + 2
+WHERE assignment_id = 3;
+
+-- task 10: Add 2 points to those students whose last name contains a 'Q'
+UPDATE grades
+SET score = score + 2
+WHERE student_id IN (
+  SELECT student_id
+  FROM student
+  WHERE last_name LIKE '%Q%'
+)
+
+
+-- task 11: compute the grade for a student 
+
+SELECT s.first_name, s.last_name, SUM(a.percentage * g.score / 100) AS grade
+FROM Student s
+JOIN Grades g ON s.student_id = g.student_id
+JOIN Assignment a ON g.assignment_id = a.assignment_id
+GROUP BY s.first_name, s.last_name
+HAVING s.student_id = 1;
+
+
+
+-- task 12: compute the grade for a student, where the lowest score for a given category is dropped
+
+
+SELECT s.first_name, s.last_name, SUM(a.percentage * (g.score - min_score.min_score) / 100) AS grade
+FROM Student s
+JOIN Grades g ON s.student_id = g.student_id
+JOIN Assignment a ON g.assignment_id = a.assignment_id
+JOIN (SELECT student_id, MIN(score) AS min_score FROM Grades GROUP BY student_id) AS min_score ON s.student_id = min_score.student_id
+WHERE s.student_id = 2
+GROUP BY s.first_name, s.last_name;
