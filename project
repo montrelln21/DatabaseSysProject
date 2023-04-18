@@ -123,8 +123,7 @@ ORDER BY student.last_name, student.first_name, assignment.category;
 
 --task 7: Add an assignment to a course
 INSERT INTO Assignment (assignment_id, category, percentage, course_id)
-VALUES (5, 'Final Exam', 30.0, 1);
-
+VALUES (5, 'Final Exam', 35.0, 1);
 --delete from Assignment where assignment_id = 5;
 
 
